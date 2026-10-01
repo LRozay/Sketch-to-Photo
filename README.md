@@ -18,3 +18,27 @@ python src/baseline_controlnet.py \
 ```
 
 For a canny edge map, add `--apply-canny`. Lower Canny thresholds keep thin and broken contours and also keep more noise. Higher thresholds make a cleaner edge map and drop some weak detail. Pass an existing edge map without `--apply-canny` when the edges were already built. The scribble checkpoint is the one used for freehand sketches.
+
+Pass `--lora-path outputs/controlnet-lora/scribble` after a fine-tuning run to generate with that adapter on the same sketch.
+
+## LoRA fine-tuning
+
+`src/train_controlnet_lora.py` freezes Stable Diffusion 1.5 and trains LoRA on the ControlNet attention layers (`to_q`, `to_k`, `to_v`, `to_out.0`). Training expects three folders with matching filenames:
+
+```text
+data/hand_drawn/images/   photo targets
+data/hand_drawn/sketches/ hand-drawn sketches
+data/hand_drawn/prompts/  one text prompt per sketch
+```
+
+The hand-drawn set is the 50 to 100 sketches from the proposal. Each sketch keeps the short prompt used as the text condition.
+
+```bash
+python src/train_controlnet_lora.py \
+  --data-dir data/hand_drawn \
+  --control-type scribble \
+  --conditioning-scale 1.0 \
+  --output-dir outputs/controlnet-lora
+```
+
+The adapter is written under the output directory for that control type. Training and batch inference are intended for the COE HPC machines.
