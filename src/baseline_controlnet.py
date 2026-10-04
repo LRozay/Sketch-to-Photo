@@ -81,6 +81,21 @@ def main() -> None:
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     image.save(output)
+    output.with_suffix(".txt").write_text(
+        "\n".join(
+            [
+                f"prompt: {args.prompt}",
+                f"sketch: {args.sketch}",
+                f"control_type: {args.control_type}",
+                f"conditioning_scale: {args.conditioning_scale}",
+                f"guidance_scale: {args.guidance_scale}",
+                f"steps: {args.steps}",
+                f"seed: {args.seed}",
+                f"apply_canny: {args.apply_canny}",
+            ]
+        )
+        + "\n"
+    )
     print(f"saved {output}")
 
 
