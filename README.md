@@ -19,11 +19,25 @@ python src/baseline_controlnet.py \
 
 For a canny edge map, add `--apply-canny`. Lower Canny thresholds keep thin and broken contours and also keep more noise. Higher thresholds make a cleaner edge map and drop some weak detail. Pass an existing edge map without `--apply-canny` when the edges were already built. The scribble checkpoint is the one used for freehand sketches.
 
+Each run also writes a `.txt` file next to the image with the prompt, sketch path, control type, conditioning scale, guidance scale, step count, and seed.
+
 Pass `--lora-path outputs/controlnet-lora/scribble` after a fine-tuning run to generate with that adapter on the same sketch.
+
+## Baseline ablation
+
+`src/run_baseline_ablation.py` repeats the pretrained baseline over conditioning scales 0.5, 1.0, and 1.5 and guidance scales 5.0, 7.5, and 12.0. That is the check-in 1 comparison before LoRA fine-tuning.
+
+```bash
+python src/run_baseline_ablation.py \
+  --sketch path/to/sketch.png \
+  --prompt "a red bicycle leaning against a wall" \
+  --control-type scribble \
+  --output-dir outputs/ablation
+```
 
 ## LoRA fine-tuning
 
-`src/train_controlnet_lora.py` freezes Stable Diffusion 1.5 and trains LoRA on the ControlNet attention layers (`to_q`, `to_k`, `to_v`, `to_out.0`). Training expects three folders with matching filenames:
+`src/train_controlnet_lora.py` freezes Stable Diffusion 1.5 and trains LoRA on the ControlNet attention layers (`to_q`, `to_k`, `to_v`, `to_out.0`). Training expects the folders under `data/hand_drawn/`, with matching filenames:
 
 ```text
 data/hand_drawn/images/   photo targets
