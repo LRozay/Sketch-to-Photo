@@ -19,7 +19,7 @@ python src/baseline_controlnet.py \
 
 For a canny edge map, add `--apply-canny`. Lower Canny thresholds keep thin and broken contours and also keep more noise. Higher thresholds make a cleaner edge map and drop some weak detail. Pass an existing edge map without `--apply-canny` when the edges were already built. The scribble checkpoint is the one used for freehand sketches.
 
-Each run also writes a `.txt` file next to the image with the prompt, sketch path, control type, conditioning scale, guidance scale, step count, and seed.
+Each run also writes a `.txt` file next to the image with the prompt, sketch path, control type, conditioning scale, guidance scale, step count, and seed. The conditioning image ControlNet actually saw is saved beside it as `<name>_condition.png`.
 
 Pass `--lora-path outputs/controlnet-lora/scribble` after a fine-tuning run to generate with that adapter on the same sketch.
 

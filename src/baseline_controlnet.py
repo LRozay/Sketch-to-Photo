@@ -81,6 +81,8 @@ def main() -> None:
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     image.save(output)
+    condition_output = output.with_name(f"{output.stem}_condition{output.suffix}")
+    condition.save(condition_output)
     output.with_suffix(".txt").write_text(
         "\n".join(
             [
