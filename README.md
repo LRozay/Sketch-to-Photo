@@ -45,7 +45,11 @@ data/hand_drawn/sketches/ hand-drawn sketches
 data/hand_drawn/prompts/  one text prompt per sketch
 ```
 
-The hand-drawn set is the 50 to 100 sketches from the proposal. Each sketch keeps the short prompt used as the text condition.
+The hand-drawn set is the 50 to 100 sketches from the proposal. Each sketch keeps the short prompt used as the text condition. `src/check_hand_drawn_data.py` lists sketches that are missing a photo or a prompt before training starts.
+
+```bash
+python src/check_hand_drawn_data.py --data-dir data/hand_drawn
+```
 
 ```bash
 python src/train_controlnet_lora.py \
