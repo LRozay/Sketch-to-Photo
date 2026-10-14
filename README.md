@@ -60,3 +60,14 @@ python src/train_controlnet_lora.py \
 ```
 
 The adapter is written under the output directory for that control type. Training and batch inference are intended for the COE HPC machines.
+
+## Synthetic sketches
+
+`src/prepare_synthetic_edges.py` builds the Canny or HED conditioning maps for the COCO photographs. Canny uses thresholds 100 and 200, the same defaults as the baseline. Lower thresholds keep thin contours and more noise. Higher thresholds drop weak detail. HED is used when its prototxt and caffemodel are available locally. Those weights are not stored in the repository.
+
+```bash
+python src/prepare_synthetic_edges.py \
+  --images data/coco/images \
+  --output data/coco/canny \
+  --method canny
+```
