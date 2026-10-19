@@ -71,3 +71,18 @@ python src/prepare_synthetic_edges.py \
   --output data/coco/canny \
   --method canny
 ```
+
+## Evaluation
+
+`src/evaluate_generations.py` computes the Check-in 2 measurements after images exist. CLIP score compares each generated photo with its prompt file. FID compares a real photograph folder with a generated folder. The survey command writes a blank rating sheet with the sketch, prompt, baseline photo, and LoRA photo. It does not invent scores.
+
+```bash
+python src/evaluate_generations.py clip --images outputs/baseline --prompts data/hand_drawn/prompts
+python src/evaluate_generations.py fid --real data/coco/images --generated outputs/baseline
+python src/evaluate_generations.py survey \
+  --sketches data/hand_drawn/sketches \
+  --prompts data/hand_drawn/prompts \
+  --baseline outputs/baseline \
+  --lora outputs/lora \
+  --output outputs/pairwise_survey.csv
+```
