@@ -1,0 +1,14 @@
+{
+  "status": "pending_hpc_run",
+  "control_type": "scribble",
+  "seed": 261,
+  "conditioning_scale": 1.0,
+  "guidance_scale": 7.5,
+  "steps": 30,
+  "clip_score": null,
+  "clip_image_count": null,
+  "fid": null,
+  "fid_real_dir": "data/coco/images",
+  "fid_generated_dir": "outputs/baseline_coco",
+  "notes": "Do not invent scores. Fill this file only after evaluate_generations.py finishes on real outputs."
+}
