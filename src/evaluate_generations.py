@@ -1,4 +1,4 @@
-"""Score Check-in 2 generations with CLIP, FID, and a pairwise survey sheet.
+"""Score sketch-to-photo generations with CLIP, FID, and a pairwise survey sheet.
 
 CLIP score compares each generated image with its prompt. FID compares a
 folder of generated images with a folder of real COCO photographs. The survey
@@ -80,11 +80,21 @@ def inception_features(directory: Path, device: torch.device) -> torch.Tensor:
 
 
 def frechet_distance(real: torch.Tensor, generated: torch.Tensor) -> float:
+    """FID with the symmetric covariance square root from Check-in 3 Section 8.4.
+
+    The product of two covariance matrices is not generally symmetric, so
+    torch.linalg.eigh on that product underestimates FID. Use
+    sqrt(Σr^{1/2} Σg Σr^{1/2}) instead, which has the same Fréchet trace.
+    """
     mu_real = real.mean(dim=0)
     mu_generated = generated.mean(dim=0)
     sigma_real = torch.cov(real.T)
     sigma_generated = torch.cov(generated.T)
-    cov_mean = matrix_sqrt(sigma_real @ sigma_generated)
+    # Symmetrize before the eigendecomposition in case of tiny numeric skew.
+    sigma_real = 0.5 * (sigma_real + sigma_real.T)
+    sigma_generated = 0.5 * (sigma_generated + sigma_generated.T)
+    sigma_real_sqrt = matrix_sqrt(sigma_real)
+    cov_mean = matrix_sqrt(sigma_real_sqrt @ sigma_generated @ sigma_real_sqrt)
     diff = mu_real - mu_generated
     distance = diff.dot(diff) + torch.trace(sigma_real + sigma_generated - 2 * cov_mean)
     return float(distance.real.item())
