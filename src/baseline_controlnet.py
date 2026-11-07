@@ -17,6 +17,7 @@ from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from model_setup import CONTROLNET_MODEL_IDS, IMAGE_SIZE, SD15_MODEL_ID
+from sketch_preprocess import invert_scribble_for_controlnet
 
 
 def load_rgb(path: Path, size: int) -> Image.Image:
@@ -46,6 +47,13 @@ def main() -> None:
     parser.add_argument("--canny-low", type=int, default=100)
     parser.add_argument("--canny-high", type=int, default=200)
     parser.add_argument("--lora-path", default=None, help="Directory of a ControlNet LoRA adapter to load")
+    parser.add_argument(
+        "--invert-scribble",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Threshold and invert dark-on-light paper sketches for the scribble ControlNet",
+    )
+    parser.add_argument("--scribble-threshold", type=int, default=200, help="Gray value below which a stroke is kept")
     args = parser.parse_args()
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -67,6 +75,9 @@ def main() -> None:
     condition = load_rgb(Path(args.sketch), args.resolution)
     if args.apply_canny:
         condition = canny_edges(condition, args.canny_low, args.canny_high)
+    elif args.control_type == "scribble" and args.invert_scribble:
+        # Check-in 3: scribble ControlNet expects white strokes on black.
+        condition = invert_scribble_for_controlnet(condition, args.scribble_threshold)
 
     generator = torch.Generator(device=device).manual_seed(args.seed)
     image = pipe(
@@ -94,6 +105,7 @@ def main() -> None:
                 f"steps: {args.steps}",
                 f"seed: {args.seed}",
                 f"apply_canny: {args.apply_canny}",
+                f"invert_scribble: {args.control_type == 'scribble' and args.invert_scribble and not args.apply_canny}",
             ]
         )
         + "\n"

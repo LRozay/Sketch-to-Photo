@@ -19,6 +19,7 @@ from transformers import CLIPTextModel, CLIPTokenizer
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from model_setup import CONTROLNET_MODEL_IDS, IMAGE_SIZE, SD15_MODEL_ID
+from sketch_preprocess import invert_scribble_for_controlnet
 
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg"}
 
@@ -31,8 +32,8 @@ def find_with_stem(directory: Path, stem: str) -> Path | None:
     return None
 
 
-def to_tensor(path: Path, size: int, normalize: bool) -> torch.Tensor:
-    image = Image.open(path).convert("RGB").resize((size, size), Image.Resampling.LANCZOS)
+def to_tensor(image: Image.Image, size: int, normalize: bool) -> torch.Tensor:
+    image = image.convert("RGB").resize((size, size), Image.Resampling.LANCZOS)
     array = torch.tensor(list(image.getdata()), dtype=torch.float32).view(size, size, 3) / 255.0
     if normalize:
         array = array * 2.0 - 1.0
@@ -42,11 +43,13 @@ def to_tensor(path: Path, size: int, normalize: bool) -> torch.Tensor:
 class HandDrawnSketchDataset(Dataset):
     """Pairs a target photo, a hand-drawn sketch, and a one-line prompt."""
 
-    def __init__(self, root: Path, size: int) -> None:
+    def __init__(self, root: Path, size: int, invert_scribble: bool = True, scribble_threshold: int = 200) -> None:
         sketch_dir = root / "sketches"
         image_dir = root / "images"
         prompt_dir = root / "prompts"
         self.size = size
+        self.invert_scribble = invert_scribble
+        self.scribble_threshold = scribble_threshold
         self.pairs: list[tuple[Path, Path, Path]] = []
         if sketch_dir.is_dir():
             for sketch_path in sorted(sketch_dir.iterdir()):
@@ -62,9 +65,13 @@ class HandDrawnSketchDataset(Dataset):
 
     def __getitem__(self, index: int) -> dict[str, torch.Tensor | str]:
         image_path, sketch_path, prompt_path = self.pairs[index]
+        photo = Image.open(image_path)
+        sketch = Image.open(sketch_path)
+        if self.invert_scribble:
+            sketch = invert_scribble_for_controlnet(sketch, self.scribble_threshold)
         return {
-            "pixel_values": to_tensor(image_path, self.size, normalize=True),
-            "conditioning": to_tensor(sketch_path, self.size, normalize=False),
+            "pixel_values": to_tensor(photo, self.size, normalize=True),
+            "conditioning": to_tensor(sketch, self.size, normalize=False),
             "prompt": prompt_path.read_text().strip(),
         }
 
@@ -81,6 +88,13 @@ def main() -> None:
     parser.add_argument("--batch-size", type=int, default=1)
     parser.add_argument("--conditioning-scale", type=float, default=1.0)
     parser.add_argument("--seed", type=int, default=261)
+    parser.add_argument(
+        "--invert-scribble",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Threshold and invert dark-on-light paper sketches for scribble ControlNet",
+    )
+    parser.add_argument("--scribble-threshold", type=int, default=200)
     args = parser.parse_args()
 
     torch.manual_seed(args.seed)
@@ -113,7 +127,12 @@ def main() -> None:
         raise SystemExit("LoRA did not attach any trainable ControlNet parameters.")
 
     noise_scheduler = DDPMScheduler.from_pretrained(SD15_MODEL_ID, subfolder="scheduler")
-    dataset = HandDrawnSketchDataset(Path(args.data_dir), args.resolution)
+    dataset = HandDrawnSketchDataset(
+        Path(args.data_dir),
+        args.resolution,
+        invert_scribble=args.invert_scribble and args.control_type == "scribble",
+        scribble_threshold=args.scribble_threshold,
+    )
     if len(dataset) == 0:
         raise SystemExit(
             f"No sketch, photo, and prompt triples found in {args.data_dir}. "
