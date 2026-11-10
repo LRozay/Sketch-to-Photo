@@ -8,7 +8,7 @@
   "clip_score": null,
   "clip_image_count": null,
   "fid": null,
-  "fid_real_dir": "data/coco/images",
+  "fid_real_dir": "data/coco/fid_real",
   "fid_generated_dir": "outputs/baseline_coco",
-  "notes": "Do not invent scores. Fill this file only after evaluate_generations.py finishes on real outputs."
+  "notes": "Do not invent scores. Build data/coco/fid_real from fid_real.txt, run the baseline COCO generations, then fill this file with evaluate_generations.py."
 }
