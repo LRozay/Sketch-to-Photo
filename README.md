@@ -88,3 +88,19 @@ python src/evaluate_generations.py survey \
   --lora outputs/lora \
   --output outputs/pairwise_survey.csv
 ```
+
+## Check-in 3 pipeline fixes
+
+Before the first scored HPC run, three issues from Check-in 3 Section 8.4 are fixed in the code:
+
+- FID uses the symmetric covariance square root in `src/evaluate_generations.py`.
+- Dark-on-light hand-drawn scribbles are thresholded and inverted for the scribble ControlNet in `src/sketch_preprocess.py`, used by inference and LoRA training.
+- FID scoring reads the held-out photographs in `data/coco/fid_real`, built from `data/coco/splits/fid_real.txt` by `src/build_fid_real_folder.py`.
+
+```bash
+python src/build_fid_real_folder.py \
+  --fid-list data/coco/splits/fid_real.txt \
+  --images data/coco/images \
+  --output data/coco/fid_real
+```
+
