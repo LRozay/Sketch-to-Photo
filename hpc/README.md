@@ -10,3 +10,12 @@ sbatch hpc/run_lora_train.slurm
 
 Both jobs keep seed 261. The baseline job writes `outputs/baseline/`. The LoRA
 job writes the rank-8 adapter under `outputs/controlnet-lora/scribble/`.
+
+```bash
+sbatch hpc/run_compare.slurm
+```
+
+Submit `run_compare.slurm` only after the LoRA adapter exists. It writes the
+fixed-seed baseline and adapter folders and builds the blank pairwise survey
+sheet under `outputs/pairwise_survey.csv`.
+
