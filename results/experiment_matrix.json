@@ -1,0 +1,53 @@
+{
+  "seed": 261,
+  "steps": 30,
+  "conditioning_scales": [0.5, 1.0, 1.5],
+  "guidance_scales": [5.0, 7.5, 12.0],
+  "configurations": [
+    {
+      "name": "pretrained_canny",
+      "control_type": "canny",
+      "lora_path": null,
+      "status": "inference_ready",
+      "clip_score": null,
+      "fid": null,
+      "survey_role": null,
+      "outputs": {
+        "single": "outputs/baseline_canny",
+        "ablation": "outputs/ablation/canny",
+        "coco_fid": "outputs/baseline_coco"
+      }
+    },
+    {
+      "name": "pretrained_scribble",
+      "control_type": "scribble",
+      "lora_path": null,
+      "status": "batch_and_hpc_ready",
+      "clip_score": null,
+      "fid": null,
+      "survey_role": "baseline",
+      "outputs": {
+        "batch": "outputs/baseline",
+        "ablation": "outputs/ablation/scribble",
+        "compare": "outputs/compare/baseline"
+      }
+    },
+    {
+      "name": "scribble_lora_rank8",
+      "control_type": "scribble",
+      "lora_path": "outputs/controlnet-lora/scribble",
+      "lora_rank": 8,
+      "train_steps": 500,
+      "status": "training_pending_hpc",
+      "clip_score": null,
+      "fid": null,
+      "survey_role": "adapted",
+      "outputs": {
+        "adapter": "outputs/controlnet-lora/scribble",
+        "compare": "outputs/compare/lora",
+        "ablation": "outputs/ablation/scribble_lora"
+      }
+    }
+  ],
+  "notes": "Scores stay null until the HPC jobs and survey votes finish. Do not invent numbers."
+}
